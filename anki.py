@@ -205,7 +205,7 @@ def show_home():
             st.markdown("Akshata Ranjeet Nachare")
             st.markdown("I am Akshata Ranjeet Nachare, currently pursuing an M.Sc. in Bioinformatics at DES Pune University. This application is a part of my academic and personal interest in data-driven biological analysis. Developed with the aim to simplify and visualize complex bioinformatics data, the app reflects both my learning journey and practical skills in the field.")
        
-            st.markdown("Linkedin:https://www.linkedin.com/in/akshata-nachare")
+            st.markdown("Linkedin:https://www.linkedin.com/in/akshata-nachare-740858319")
             st.subheader("Mentor")
             st.image("https://media.licdn.com/dms/image/v2/D5603AQF9gsU7YBjWVg/profile-displayphoto-shrink_400_400/B56ZZI.WrdH0Ag-/0/1744981029051?e=1752105600&v=beta&t=F4QBDSEgjUvnBS00xPkKqPTLI0jQaMpYefaOzARY1Yg", width=150)
             st.markdown("Dr.Kushagra Kashayp")
