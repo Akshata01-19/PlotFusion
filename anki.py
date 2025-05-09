@@ -325,7 +325,7 @@ def show_plot_viewer():
         ("Volcano Plot", "Bar Plot", "Box Plot", "Heatmap", "Scatter Plot", "Dot Plot", "Ramachandran Plot")
     )
 
-    st.markdown("Note:For Box and Bar plot Y-axis should be numeric and for better visualization of plots click on 🔳 icon")
+    st.markdown("Note: For Box and Bar plot Y-axis should be numeric and for better visualization of plots click on 🔳 icon")
 
 
     # Volcano Plot
