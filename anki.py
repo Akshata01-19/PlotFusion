@@ -9,12 +9,10 @@ from matplotlib.colors import LinearSegmentedColormap
 from io import BytesIO
 import base64
 
-
 # Custom background with gradient and pattern
 def set_bg_color():
     st.markdown(
-        """
-        <style>
+        """ <style>
         .stApp {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             background-attachment: fixed;
@@ -54,6 +52,16 @@ def set_bg_color():
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+        
+        /* Reduced spacing in markdown sections */
+        .stMarkdown p {
+            margin-bottom: 0.2rem !important;
+            line-height: 1.2 !important;
+        }
+        
+        .stMarkdown div {
+            margin-bottom: 0.5rem !important;
+        }
         </style>
         """,
         unsafe_allow_html=True
@@ -66,89 +74,11 @@ set_bg_color()
 def get_sample_file(filename):
     base_size = 100  # Base sample size
     np.random.seed(42)  # For reproducibility
-    
-    if filename == "ramachandran_sample.csv":
-        n_points = base_size * 3
-        data = {
-            'phi': np.concatenate([
-                np.random.normal(-120, 30, base_size),
-                np.random.normal(-60, 20, base_size),
-                np.random.uniform(-180, 180, base_size)
-            ]),
-            'psi': np.concatenate([
-                np.random.normal(120, 30, base_size),
-                np.random.normal(-45, 20, base_size),
-                np.random.uniform(-180, 180, base_size)
-            ]),
-            'chain': np.random.choice(['A', 'B'], n_points),
-            'residue': np.arange(1, n_points+1)
-        }
-    elif filename == "volcano_sample.csv":
-        n_points = base_size * 10
-        data = {
-            'logFC': np.concatenate([
-                np.random.normal(-2, 0.5, 50),
-                np.random.normal(2, 0.5, 50),
-                np.random.normal(0, 1, n_points - 100)
-            ])[:n_points],
-            'adj.P.Val': np.concatenate([
-                np.random.uniform(0, 0.001, 100),
-                np.random.uniform(0.05, 1, n_points - 100)
-            ])[:n_points]
-        }
-    elif filename == "box_bar_sample.csv":
-        data = {
-            'Category': np.random.choice(['A', 'B', 'C'], base_size),
-            'Value': np.concatenate([
-                np.random.normal(50, 10, 40),
-                np.random.normal(80, 15, 40),
-                np.random.normal(30, 5, 20)
-            ])[:base_size],
-            'Group': np.random.choice(['X', 'Y'], base_size)
-        }
-    elif filename == "scatter_sample.csv":
-        heights = np.random.normal(170, 10, base_size)
-        data = {
-            'Height': heights,
-            'Weight': np.random.normal(70, 15, base_size) * 0.01 * heights,
-            'Age': np.random.randint(18, 65, base_size)
-        }
-    elif filename == "heatmap_sample.csv":
-        base = np.random.normal(0, 1, base_size)
-        data = {
-            'Gene1': base,
-            'Gene2': base * 0.7,
-            'Gene3': base * 0.3,
-            'Gene4': -base * 0.6
-        }
-    elif filename == "data_processing_sample.csv":
-        data = {
-            'ID': range(1, base_size + 1),
-            'Measurement': np.concatenate([
-                np.random.normal(50, 10, base_size - 7),
-                [np.nan] * 5,
-                [200, -50]  # Outliers
-            ])[:base_size],
-            'Category': np.random.choice(['Control', 'Treatment'], base_size),
-            'Score': np.random.uniform(0, 100, base_size)
-        }
-    elif filename == "dot_sample.csv":
-        data = {
-            'Category': np.random.choice(['A', 'B', 'C'], base_size),
-            'Value': np.random.normal(50, 15, base_size),
-            'Group': np.random.choice(['X', 'Y'], base_size)
-        }
-    else:  # general sample
-        data = {
-            'Category': np.random.choice(['A', 'B', 'C'], base_size),
-            'Value': np.random.normal(0, 1, base_size),
-            'Group': np.random.choice(['X', 'Y'], base_size)
-        }
-    
-    df = pd.DataFrame({k: v[:base_size] for k, v in data.items()})
-    csv = df.to_csv(index=False)
-    b64 = base64.b64encode(csv.encode()).decode()
-    return b64
+    df = pd.DataFrame({
+        'Category': np.random.choice(['A','B','C'], base_size),
+        'Value': np.random.normal(0,1, base_size)
+    })
+    return base64.b64encode(df.to_csv(index=False).encode()).decode()
 
 def fig_to_download(fig):
     buf = BytesIO()
@@ -163,80 +93,123 @@ def load_data(uploaded_file):
                 return pd.read_csv(uploaded_file)
             elif uploaded_file.name.endswith('.tsv'):
                 return pd.read_csv(uploaded_file, sep='\t')
-            elif uploaded_file.name.endswith(('.xlsx', '.xls')):
+            else:
                 return pd.read_excel(uploaded_file)
         except Exception as e:
-            st.error(f"Error loading file: {str(e)}")
-    return None
+            st.error(f"Error loading file: {e}")
+            return None
 
+# -- Home Page --
 def show_home():
     st.title("Welcome to PlotFusion - Data Visualization App")
-    
-    # Create sub-tabs for Home Page
-    about_tab, team_tab, samples_tab = st.tabs(["About", "Team", "Sample Files"])
-    
-    with about_tab:
-        st.header("📊 About This App")
-        st.markdown("""
-        ### Data Visualization Made Easy
-        This application helps researchers and analysts explore their data through interactive visualizations.
-        
-        #### Key Features:
-        - *Volcano Plots*: Visualize statistical significance vs magnitude of change
-        - *Bar/Box Plots*: Compare categorical data distributions
-        - *Heatmaps*: Explore correlation matrices
-        - *Scatter/Dot Plots*: Examine relationships between variables
-        - *Ramachandran Plots*: Analyze protein backbone dihedral angles
-        
-        #### Technology Stack:
-        - Built with [Streamlit](https://streamlit.io/)
-        - Powered by Python visualization libraries:
-          * Matplotlib
-          * Seaborn
-          * Plotly
-        """)
-        
-    with team_tab:
-        st.header("👤 Our Team")
-        col1, = st.columns(1)
-        with col1:
-            st.subheader("Author")
-            st.image("https://media.licdn.com/dms/image/v2/D4E03AQEHejsw-whX6Q/profile-displayphoto-shrink_200_200/B4EZavA0LyHkAY-/0/1746692953130?e=1752105600&v=beta&t=eY9gy-4nxSM5-hsV-DvALVVWDEO30CqBqyTHl0k-ess", width=150)
-            st.markdown("Akshata Ranjeet Nachare")
-            st.markdown("I am Akshata Ranjeet Nachare, currently pursuing an M.Sc. in Bioinformatics at DES Pune University. This application is a part of my academic and personal interest in data-driven biological analysis. Developed with the aim to simplify and visualize complex bioinformatics data, the app reflects both my learning journey and practical skills in the field.")
-       
-            st.markdown("Linkedin:https://www.linkedin.com/in/akshata-nachare-740858319")
-            st.subheader("Mentor")
-            st.image("https://media.licdn.com/dms/image/v2/D5603AQF9gsU7YBjWVg/profile-displayphoto-shrink_400_400/B56ZZI.WrdH0Ag-/0/1744981029051?e=1752105600&v=beta&t=F4QBDSEgjUvnBS00xPkKqPTLI0jQaMpYefaOzARY1Yg", width=150)
-            st.markdown("Dr.Kushagra Kashayp")
-            st.markdown("Assistant Professor (Bioinformatics), Department of Life Sciences, School of Science and Mathematics, DES Pune University")
-            st.markdown("Special thanks to Dr. Kushagra Kashyap Professor at DES Pune University.This project is developed under the guidance of Dr. Kushagra Kashyap, my professor at the university, whose teaching in bioinformatics has been instrumental in shaping my understanding and passion for the subject.")
-            st.markdown("Linkedin:https://www.linkedin.com/in/dr-kushagra-kashyap-b230a3bb")
-    
-    with samples_tab:
-        st.header("📁 Sample Files")
-        samples = [
-            ("Volcano Plot", "volcano_sample.csv", "Differential expression data"),
-            ("Box/Bar Plots", "box_bar_sample.csv", "Categorical comparisons"),
-            ("Scatter Plot", "scatter_sample.csv", "Height/Weight correlation"),
-            ("Heatmap", "heatmap_sample.csv", "Gene expression correlations"),
-            ("Dot Plot", "dot_sample.csv", "Individual data points visualization"),
-            ("Ramachandran", "ramachandran_sample.csv", "Protein dihedral angles"),
-            ("Data Processing", "data_processing_sample.csv", "Dataset with missing values")
-        ]
-        
-        cols = st.columns(2)
-        for i, (name, file, desc) in enumerate(samples):
-            with cols[i % 2]:
-                with st.expander(name):
-                    st.markdown(desc)
-                    href = f'<a href="data:file/csv;base64,{get_sample_file(file)}" download="{file}">Download {file}</a>'
-                    st.markdown(href, unsafe_allow_html=True)
 
+    st.header("📊 About This App")
+
+    st.markdown("""
+    <div style="font-size:20px; line-height:1.4;">
+      <strong>Data Visualization Made Easy</strong><br>
+      This application helps researchers and analysts explore their data through interactive visualizations.<br><br>
+
+      <strong>Key Features:</strong><br>
+      - <em>Volcano Plots</em>: Visualize statistical significance vs magnitude of change<br>
+      - <em>Bar/Box Plots</em>: Compare categorical data distributions<br>
+      - <em>Heatmaps</em>: Explore correlation matrices<br>
+      - <em>Scatter/Dot Plots</em>: Examine relationships between variables<br>
+      - <em>Ramachandran Plots</em>: Analyze protein backbone dihedral angles<br><br>
+
+      <strong>Technology Stack:</strong><br>
+      - Streamlit<br>
+      - Matplotlib / Seaborn<br>
+      - Plotly
+    </div>
+    """, unsafe_allow_html=True)
+
+# -- Team Page --
+def show_team():
+    st.title("👥 Our Team")
+    st.subheader("Author")
+    st.image(
+        "https://media.licdn.com/dms/image/v2/D4E03AQEHejsw-whX6Q/"
+        "profile-displayphoto-shrink_200_200/B4EZavA0LyHkAY-/"
+        "0/1746692953130?e=1752105600&v=beta&t=eY9gy-4nxSM5-"
+        "hsV-DvALVVWDEO30CqBqyTHl0k-ess",
+        width=150
+    )
+    st.markdown("""
+    <div style="font-size:16px; line-height:1.2;">
+    <strong>Akshata Ranjeet Nachare</strong><br>
+    M.Sc. Bioinformatics Student, DES Pune University<br>
+    This application is a part of my academic and personal interest in data-driven
+    biological analysis. Developed with the aim to simplify and visualize complex
+    bioinformatics data, the app reflects both my learning journey and practical
+    skills in the field. By integrating both statistical concepts and visualization techniques, this project reflects my growing understanding of the field and my commitment to building tools that enhance scientific discovery. Developing this application has been a meaningful part of my journey in bioinformatics—helping me apply theoretical knowledge in a practical setting, and deepening my appreciation for the intersection of biology, data science, and technology.
+
+<br>
+    LinkedIn- https://www.linkedin.com/in/akshata-nachare-740858319
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.subheader("Mentor")
+    st.image(
+        "https://media.licdn.com/dms/image/v2/D5603AQF9gsU7YBjWVg/"
+        "profile-displayphoto-shrink_400_400/B56ZZI.WrdH0Ag-/"
+        "0/1744981029051?e=1752105600&v=beta&t=F4QBDSEgjUvnBS00xPkKqPTLI0jQaMpYefaOzARY1Yg",
+        width=150
+    )
+    st.markdown("""
+    <div style="font-size:16px; line-height:1.2;">
+    <strong>Dr. Kushagra Kashyap</strong><br>
+    Assistant Professor (Bioinformatics), DES Pune University<br>
+    Special thanks to Dr. Kushagra Kashyap under whose guidance this project was developed. His invaluable support, encouragement, and mentorship have played a pivotal role in shaping the direction and quality of this application. His insightful teaching has not only guided this work but has also deeply influenced my understanding and passion for the subject.<br>
+    LinkedIn- https://www.linkedin.com/in/dr-kushagra-kashyap-b230a3bb
+    </div>
+    """, unsafe_allow_html=True)
+# -- Sample Files Page --
+def show_samples():
+    st.title("📁 Sample Files")
+    st.markdown("""
+    <style>
+      .stExpander > .streamlit-expanderHeader {
+        font-size: 24px !important;
+        font-weight: 600 !important;
+      }
+      [data-testid="stExpander"] summary {
+        font-size: 24px !important;
+        font-weight: 600 !important;
+      }
+    </style>
+    """, unsafe_allow_html=True)
+
+    samples = [
+      ("Volcano Plot", "volcano_sample.csv", "Differential expression data"),
+      ("Box/Bar Plots", "box_bar_sample.csv", "Categorical comparisons"),
+      ("Scatter Plot", "scatter_sample.csv", "Height/Weight correlation"),
+      ("Heatmap", "heatmap_sample.csv", "Gene expression correlations"),
+      ("Dot Plot", "dot_sample.csv", "Individual data points visualization"),
+      ("Ramachandran", "ramachandran_sample.csv", "Protein dihedral angles"),
+      ("Data Processing", "data_processing_sample.csv", "Dataset with missing values")
+    ]
+    for name, file, desc in samples:
+        with st.expander(name):
+            st.markdown(desc)
+            href = f'<a href="data:file/csv;base64,{get_sample_file(file)}" download="{file}">Download {file}</a>'
+            st.markdown(href, unsafe_allow_html=True)
+
+# -- Data Processing Tools --
 def show_data_processing_tools():
     st.title("🛠️ Data Processing Tools")
     
-    uploaded_file = st.file_uploader("Upload your data file", type=["csv", "tsv", "xlsx"])
+    # Custom, larger label for the uploader
+    st.markdown(
+        "<h3 style='font-size:20px; font-weight:600;'>Upload your data file</h3>",
+        unsafe_allow_html=True
+    )
+    # Hide the built-in label to avoid an empty-label warning
+    uploaded_file = st.file_uploader(
+        "data_processing_upload", 
+        type=["csv", "tsv", "xlsx"], 
+        label_visibility="collapsed"
+    )
     
     if uploaded_file:
         df = load_data(uploaded_file)
@@ -301,32 +274,53 @@ def show_data_processing_tools():
             href = f'<a href="data:file/csv;base64,{b64}" download="processed_data.csv">Download Processed Data</a>'
             st.markdown(href, unsafe_allow_html=True)
 
+            
+
+# -- Interactive Plot Viewer --
 def show_plot_viewer():
     st.title("📊 Interactive Plot Viewer")
-    
-    # Uploaders for separate inputs
-    st.header("Data Upload")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        uploaded_file = st.file_uploader("Upload CSV/Excel for Volcano/Scatter/Dot Plots", type=["csv", "xlsx", "tsv"])
-    with col2:
-        bar_box_file = st.file_uploader("Upload CSV/TSV for Bar/Box Plots", type=["csv", "tsv"], key="bar_box")
-    
-    col3, col4 = st.columns(2)
-    with col3:
-        heatmap_file = st.file_uploader("Upload CSV/TSV for Heatmap", type=["csv", "tsv"], key="heatmap")
-    with col4:
-        ramachandran_file = st.file_uploader("Upload CSV/TSV for Ramachandran Plot", type=["csv", "tsv"], key="rama")
 
-    # Plot selection
-    plot_type = st.selectbox(
-        "🔍 Choose the plot to display",
-        ("Volcano Plot", "Bar Plot", "Box Plot", "Heatmap", "Scatter Plot", "Dot Plot", "Ramachandran Plot")
+    # Instead of empty labels, we collapse them after giving a placeholder
+    st.markdown("<h5><b>Upload CSV/Excel for Volcano/Scatter/Dot Plots</b></h5>", unsafe_allow_html=True)
+    uploaded_file = st.file_uploader(
+        "volcano_scatter_dot_upload",
+        type=["csv", "xlsx", "tsv"],
+        label_visibility="collapsed"
     )
 
-    st.markdown("Note: For Box and Bar plot Y-axis should be numeric and for better visualization of plots click on 🔳 icon")
+    st.markdown("<h5><b>Upload CSV/TSV for Bar/Box Plots</b></h5>", unsafe_allow_html=True)
+    bar_box_file = st.file_uploader(
+        "bar_box_upload",
+        type=["csv", "tsv"],
+        key="bar_box",
+        label_visibility="collapsed"
+    )
 
+    st.markdown("<h5><b>Upload CSV/TSV for Heatmap</b></h5>", unsafe_allow_html=True)
+    heatmap_file = st.file_uploader(
+        "heatmap_upload",
+        type=["csv", "tsv"],
+        key="heatmap",
+        label_visibility="collapsed"
+    )
+
+    st.markdown("<h5><b>Upload CSV/TSV for Ramachandran Plot</b></h5>", unsafe_allow_html=True)
+    ramachandran_file = st.file_uploader(
+        "rama_upload",
+        type=["csv", "tsv"],
+        key="rama",
+        label_visibility="collapsed"
+    )
+
+    st.markdown("<h4><b>🔍 Choose the plot to display</b></h4>", unsafe_allow_html=True)
+    plot_type = st.selectbox(
+        "plot_selector",
+        ("Volcano Plot", "Bar Plot", "Box Plot", "Heatmap", "Scatter Plot", "Dot Plot", "Ramachandran Plot"),
+        label_visibility="collapsed"
+    )
+
+    st.markdown("**Note:** For Box and Bar plot, Y-axis should be numeric and for better visualization of plots click on ⬜")
+    
 
     # Volcano Plot
     if plot_type == "Volcano Plot":
@@ -647,14 +641,74 @@ def show_plot_viewer():
         else:
             st.info("Please upload a file for the heatmap.")
 
-# Create main tabs
-main_tab1, main_tab2, main_tab3 = st.tabs(["🏠 Home Page", "📈 Interactive Plot Viewer", "🛠️ Data Processing Tools"])
 
-with main_tab1:
-    show_home()
+# -- About Page --
+def show_about():
+    st.title("📚 About PlotFusion")
+    st.header("📝 User Guide")
 
-with main_tab2:
-    show_plot_viewer()
+    st.subheader("Using the Interactive Plot Viewer")
+    st.markdown("""
+    <div style="font-size:18px; line-height:1.3;">
+    1. Upload your file via the uploader in that tab.<br>
+    2. Choose a plot from the "Select plot" dropdown.<br>
+    3. Configure axes.<br>
+    4. (Optional) Enable features like trendlines.<br>
+    5. View your plot.<br>
+    6. Download it via right-click or the "Download" button.
+    </div>
+    """, unsafe_allow_html=True)
 
-with main_tab3:
-    show_data_processing_tools()
+    st.subheader("Using Data Processing Tools")
+    st.markdown("""
+    <div style="font-size:18px; line-height:1.3;">
+    1. Upload your dataset.<br>
+    2. Remove missing values with one click.<br>
+    3. Filter rows by numeric range or categorical values.<br>
+    4. Normalize any numeric column to a Z-score.<br>
+    5. View a Pearson correlation matrix (when ≥ 2 numeric columns).<br>
+    6. Download your processed dataset as a CSV.
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.header("🙏 Acknowledgements")
+    st.markdown("""
+    <div style="font-size:18px; line-height:1.3;">
+    Akshata Ranjeet Nachare (Developer)<br>
+    Dr. Kushagra Kashyap (Mentor)
+    </div>
+    """, unsafe_allow_html=True)
+def main():
+    # Inject CSS to enlarge tab labels
+    st.markdown(""" <style>
+    /* Targets the tab buttons in Streamlit's tab bar */
+    [data-testid="stHorizontalBlock"] button[role="tab"] {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+    } </style>
+    """, unsafe_allow_html=True)
+
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "🏠 Home Page",
+        "📚 About",
+        "👥 Team",
+        "📁 Sample Files",
+        "📈 Interactive Plot Viewer",
+        "🛠️ Data Processing Tools"
+    ])
+
+    with tab1:
+        show_home()
+    with tab2:
+        show_about()
+    with tab3:
+        show_team()
+    with tab4:
+        show_samples()
+    with tab5:
+        show_plot_viewer()
+    with tab6:
+        show_data_processing_tools()
+
+if __name__ == "__main__":
+    main()
